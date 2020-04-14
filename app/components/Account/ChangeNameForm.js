@@ -5,6 +5,8 @@ import { validateEmail } from "../../utils/Validation";
 import * as firebase from "firebase";
 import SRV from "../../utils/Service";
 import CST from "../../utils/CustomSettings";
+import { updateItem, getItem } from "../../utils/Storage";
+import { USER_INFO } from "../../constants";
 
 export default function CahngeNameForm(props) {
   const { displayName, setIsVisibleModal, setReloadData, toastRef } = props;
@@ -19,40 +21,29 @@ export default function CahngeNameForm(props) {
   const [currBroker, setCurrBroker] = useState("");
 
   useEffect(() => {
-    //Se invoca funcion asyncrona que obtiene el broker asociado al usuario
-    const traerBroker = async () => {
-      const curr_user = firebase.auth().currentUser.uid;
-      let data = await SRV.getBroker(curr_user);
-      setCurrBroker(data);
-      setNewName(data.brk_name);
-      setNewCompany(data.brk_company);
-      setNewEmail(data.brk_mail);
-      setNewTele(data.brk_telefono);
-      setNewCiudad(data.brk_ciudad);
-      setNewCargo(data.brk_cargo);
-    };
-
-    //Se invoca la funcion Async
     traerBroker();
   }, []);
 
+  const traerBroker = async () => {
+    let cur_brk = await getItem(USER_INFO);
+    cur_brk = JSON.parse(cur_brk);
+    setCurrBroker(cur_brk);
+    setNewName(cur_brk.brk_name);
+    setNewCompany(cur_brk.brk_company);
+    setNewEmail(cur_brk.brk_mail);
+    setNewTele(cur_brk.brk_telefono);
+    setNewCiudad(cur_brk.brk_ciudad);
+    setNewCargo(cur_brk.brk_cargo);
+  };
+
   const updateNewName = async () => {
     setError({});
-    if (
-      !newName ||
-      !newCompany ||
-      !newEmail ||
-      !newCargo ||
-      !newTele ||
-      !newCiudad
-    ) {
+    if (!newName || !newCompany || !newCargo || !newTele) {
       let objError = {};
       !newName && (objError.nombre = "No puede estar vacio");
       !newCompany && (objError.company = "Debe registrar la compañia");
-      !newEmail && (objError.email = "No puede estar vacio");
       !newCargo && (objError.cargo = "Registre el cargo ocupado");
       !newTele && (objError.telefono = "Registre numero de contacto");
-      !newCiudad && (objError.ciudad = "Debe registrar la ciudad");
       setError(objError);
     } else {
       setIsLoading(true);
@@ -75,17 +66,23 @@ export default function CahngeNameForm(props) {
   const updateBroker = async () => {
     let val_broker = await SRV.updateDatosBroker(
       firebase.auth().currentUser.uid,
+      1,
       newName,
       newCompany,
-      newEmail,
       newTele,
-      newCargo,
-      newCiudad
+      newCargo
     );
     if (val_broker.type > 0) {
+      let new_brk = {
+        brk_name: newName,
+        brk_company: newCompany,
+        brk_cargo: newCargo,
+        brk_telefono: newTele,
+      };
+      await updateItem(USER_INFO, JSON.stringify(new_brk));
       setIsLoading(false);
       setReloadData(true);
-      toastRef.current.show("Nombre actualizado correcatmente");
+      toastRef.current.show("Datos actualizados correcatmente");
       setIsVisibleModal(false);
     } else {
       setIsLoading(false);
@@ -119,19 +116,6 @@ export default function CahngeNameForm(props) {
         errorMessage={error.company}
       />
       <Input
-        placeholder="E-mail"
-        keyboardType="email-address"
-        containerStyle={styles.input}
-        onChange={(e) => setNewEmail(e.nativeEvent.text)}
-        defaultValue={currBroker.brk_mail && currBroker.brk_mail}
-        rightIcon={{
-          type: "material-community",
-          name: "at",
-          color: "#c2c2c2",
-        }}
-        errorMessage={error.email}
-      />
-      <Input
         placeholder="Telefono"
         keyboardType="phone-pad"
         containerStyle={styles.input}
@@ -155,18 +139,6 @@ export default function CahngeNameForm(props) {
           color: "#c2c2c2",
         }}
         errorMessage={error.cargo}
-      />
-      <Input
-        placeholder="Ciudad de Residencia"
-        containerStyle={styles.input}
-        onChange={(e) => setNewCiudad(e.nativeEvent.text)}
-        defaultValue={currBroker.brk_ciudad && currBroker.brk_ciudad}
-        rightIcon={{
-          type: "material-community",
-          name: "google-maps",
-          color: "#c2c2c2",
-        }}
-        errorMessage={error.ciudad}
       />
       <Button
         title="Actualizar Perfil"

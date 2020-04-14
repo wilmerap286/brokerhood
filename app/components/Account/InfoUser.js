@@ -1,19 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, Alert } from "react-native";
-import { Avatar, Icon } from "react-native-elements";
+import { Avatar, Icon, Card, ListItem } from "react-native-elements";
 import * as firebase from "firebase";
 import * as Permissions from "expo-permissions";
 import * as ImagePicker from "expo-image-picker";
 import SRV from "../../utils/Service";
+import { updateItem } from "../../utils/Storage";
+import { USER_INFO } from "../../constants";
 
 export default function InfoUser(props) {
   const {
-    userInfo: { uid, displayName, email, photoURL },
+    userInfo,
     setReloadData,
     toastRef,
     setIsLoading,
     setTextLoading,
   } = props;
+  const [uid, setUid] = useState(userInfo.brk_mail);
 
   const changeAvatar = async () => {
     const resultPermissions = await Permissions.askAsync(
@@ -78,6 +81,9 @@ export default function InfoUser(props) {
       user.photoURL
     );
     if (val_broker.type > 0) {
+      let new_foto = { brk_avatar: user.photoURL };
+      await updateItem(USER_INFO, JSON.stringify(new_foto));
+      console.log(val_broker.broker);
       setReloadData(true);
       setIsLoading(false);
     } else {
@@ -87,26 +93,86 @@ export default function InfoUser(props) {
   };
 
   return (
-    <View style={styles.viewUserInfo}>
-      <Avatar
-        rounded
-        size="large"
-        showEditButton
-        onEditPress={changeAvatar}
-        containerStyle={styles.userInfoAvatar}
-        source={{
-          uri: photoURL
-            ? photoURL
-            : "http://2020.aal-estate.com/files/brokerhood/avatar/avatar-01.png",
-        }}
-      />
-      <View>
-        <Text style={styles.displayName}>
-          {displayName ? displayName : "ANONIMO"}
-        </Text>
-        <Text>{email}</Text>
+    <>
+      <View style={styles.viewUserInfo}>
+        <Avatar
+          rounded
+          size="large"
+          showEditButton
+          onEditPress={changeAvatar}
+          containerStyle={styles.userInfoAvatar}
+          source={{
+            uri: userInfo.brk_avatar
+              ? userInfo.brk_avatar
+              : "http://2020.aal-estate.com/files/brokerhood/avatar/avatar-01.png",
+          }}
+        />
+        <View>
+          <Text style={styles.displayName}>
+            {userInfo.brk_name ? userInfo.brk_name : "ANONIMO"}
+          </Text>
+          <Text>{userInfo.brk_mail}</Text>
+        </View>
       </View>
-    </View>
+      <View style={{ marginBottom: 20 }}>
+        <ListItem
+          key={1}
+          title={userInfo.brk_company}
+          leftIcon={
+            <Icon
+              type="material-community"
+              name="shield-account-outline"
+              color="#c2c2c2"
+              size={25}
+              underlayColor="#fff"
+            />
+          }
+          bottomDivider
+        />
+        <ListItem
+          key={2}
+          title={userInfo.brk_cargo}
+          leftIcon={
+            <Icon
+              type="material-community"
+              name="seat-recline-extra"
+              color="#c2c2c2"
+              size={25}
+              underlayColor="#fff"
+            />
+          }
+          bottomDivider
+        />
+        <ListItem
+          key={3}
+          title={userInfo.brk_telefono}
+          leftIcon={
+            <Icon
+              type="material-community"
+              name="phone"
+              color="#c2c2c2"
+              size={25}
+              underlayColor="#fff"
+            />
+          }
+          bottomDivider
+        />
+        <ListItem
+          key={4}
+          title={userInfo.brk_ciudad}
+          leftIcon={
+            <Icon
+              type="material-community"
+              name="google-maps"
+              color="#c2c2c2"
+              size={25}
+              underlayColor="#fff"
+            />
+          }
+          bottomDivider
+        />
+      </View>
+    </>
   );
 }
 

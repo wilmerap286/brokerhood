@@ -7,8 +7,9 @@ import { withNavigation } from "react-navigation";
 import Loading from "../Loading";
 import MyAccount from "../../screens/Account/MyAccount";
 import CST from "../../utils/CustomSettings";
-import { saveItem } from "../../utils/Storage";
-import { TOKEN_ACCESS, USER_INFO } from "../../constants";
+import SRV from "../../utils/Service";
+import { saveItem, updateItem, getItem } from "../../utils/Storage";
+import { ACCESS_TOKEN, USER_INFO } from "../../constants";
 
 function LoginForm(props) {
   const { toastRef, navigation } = props;
@@ -41,6 +42,18 @@ function LoginForm(props) {
       }
     }
     setIsVisibleLoading(false);
+  };
+
+  const traerBroker = async (navigation) => {
+    const curr_user = firebase.auth().currentUser.uid;
+    let data = await SRV.getBroker(curr_user);
+    const usrAnt = await getItem(USER_INFO);
+    console.log("paso 1");
+    if (usrAnt) {
+      const userResult = await updateItem(USER_INFO, JSON.stringify(data));
+    } else {
+      const userResult = await saveItem(USER_INFO, JSON.stringify(data));
+    }
   };
 
   return (

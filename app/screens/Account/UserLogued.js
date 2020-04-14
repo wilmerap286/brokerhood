@@ -3,30 +3,56 @@ import { StyleSheet, View, ImageBackground, Dimensions } from "react-native";
 import { Icon } from "react-native-elements";
 import ActionButton from "react-native-action-button";
 import * as firebase from "firebase";
+import * as Permissions from "expo-permissions";
+import * as ImagePicker from "expo-image-picker";
 import InfoUser from "../../components/Account/InfoUser";
 import Toast from "react-native-easy-toast";
 import Loading from "../../components/Loading";
-import AccountGestion from "../../components/Account/AccountGestion";
+import AccountOptions from "../../components/Account/AccountOption";
 import CST from "../../utils/CustomSettings";
+import SRV from "../../utils/Service";
+import { getItem, deleteItem, updateItem, saveItem } from "../../utils/Storage";
+import { USER_INFO } from "../../constants";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
 
 export default function UserLogued() {
   const [userInfo, setUserInfo] = useState({});
-  const [reloadData, setReloadData] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [textLoading, setTextLoading] = useState("");
+  const [reloadData, setReloadData] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [textLoading, setTextLoading] = useState("Cargando Datos");
+
   const toastRef = useRef();
 
   useEffect(() => {
-    (async () => {
-      const user = firebase.auth().currentUser;
-      setUserInfo(user.providerData[0]);
-      console.log("USER LOGUED");
-    })();
+    console.log("paso 1");
+    getCurrUser();
     setReloadData(false);
+    setIsLoading(false);
   }, [reloadData]);
+
+  getCurrUser = async () => {
+    const curr_user = firebase.auth().currentUser.uid;
+    let data = await SRV.getBroker(curr_user);
+    const usrAnt = await getItem(USER_INFO);
+    console.log("paso 2");
+    if (usrAnt) {
+      const userResult = await updateItem(USER_INFO, JSON.stringify(data));
+    } else {
+      const userResult = await saveItem(USER_INFO, JSON.stringify(data));
+    }
+
+    console.log("paso 3");
+    let cur_broker = await getItem(USER_INFO);
+    cur_broker = JSON.parse(cur_broker);
+    setUserInfo(cur_broker);
+  };
+
+  const cerrarSesion = async () => {
+    await deleteItem(USER_INFO);
+    firebase.auth().signOut();
+  };
 
   return (
     <View style={styles.viewUserInfo}>
@@ -43,42 +69,45 @@ export default function UserLogued() {
           setIsLoading={setIsLoading}
           setTextLoading={setTextLoading}
         />
+        <AccountOptions
+          userInfo={userInfo}
+          setReloadData={setReloadData}
+          toastRef={toastRef}
+        />
         <Toast ref={toastRef} position="center" opacity={0.5} />
-        <Loading text={textLoading} isVisible={isLoading} />
+        <Loading text="CARGANDO DATOS" isVisible={isLoading} />
       </ImageBackground>
-      <CloseSession />
+      <CloseSession cerrarSesion={cerrarSesion} />
     </View>
   );
 }
 
 function CloseSession(props) {
-  const { navigation } = props;
+  const { cerrarSesion } = props;
   return (
-    <ActionButton buttonColor={CST.colorPrm}>
-      <ActionButton.Item
-        buttonColor={"#06E396"}
-        title="Cerra Sesión"
-        onPress={() => firebase.auth().signOut()}
-      >
-        <Icon type="material-community" name="logout" color="#fff" size={30} />
-      </ActionButton.Item>
-      <ActionButton.Item
-        buttonColor="#D0D1D7"
-        title="Actualizar Perfil"
-        onPress={() =>
-          navigation.navigate("AccountDetails", {
-            InfoUser: InfoUser,
-            setReloadData: setReloadData,
-          })
-        }
-      >
-        <Icon
-          type="material-community"
-          name="account-convert"
-          color="#222"
-          size={30}
-        />
-      </ActionButton.Item>
+    <ActionButton
+      buttonColor={CST.colorPrm}
+      title="Cerra Sesión"
+      onPress={() => firebase.auth().signOut()}
+      renderIcon={(active) =>
+        active ? (
+          <Icon
+            type="material-community"
+            name="logout"
+            color="#fff"
+            size={30}
+          />
+        ) : (
+          <Icon
+            type="material-community"
+            name="logout"
+            color="#fff"
+            size={30}
+          />
+        )
+      }
+    >
+      <Icon type="material-community" name="logout" color="#fff" size={30} />
     </ActionButton>
   );
 }

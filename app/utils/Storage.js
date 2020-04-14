@@ -1,8 +1,19 @@
-import { AsyncStorage } from "@react-native-community/async-storage";
+import { AsyncStorage } from "react-native";
+//import { AsyncStorage } from "@react-native-community/async-storage";
 
 export const saveItem = async (KeyName, KeyValue) => {
   try {
-    return await AsyncStorage.setItem(KeyName, KeyValue);
+    await AsyncStorage.setItem(KeyName, KeyValue);
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
+export const updateItem = async (KeyName, KeyValue) => {
+  try {
+    await AsyncStorage.mergeItem(KeyName, KeyValue);
+    return true;
   } catch (e) {
     return false;
   }
@@ -16,9 +27,18 @@ export const getItem = async (KeyName) => {
   }
 };
 
+export const deleteItem = async (KeyName) => {
+  try {
+    return await AsyncStorage.removeItem(KeyName);
+  } catch (e) {
+    return false;
+  }
+};
+
 export const clearAll = async () => {
   try {
-    return await AsyncStorage.clear();
+    await AsyncStorage.clear();
+    return true;
   } catch (e) {
     return false;
   }

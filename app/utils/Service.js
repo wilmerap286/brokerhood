@@ -2,15 +2,41 @@ const URL_2020 = "https://2020.aal-estate.com/api";
 import { Alert } from "react-native";
 
 class SRV {
+  //Ciudades donde esta
+  getCiudades() {
+    return fetch(`${URL_2020}/13`, {
+      method: "POST",
+      body: JSON.stringify({
+        tipo: 1,
+      }),
+      headers: {
+        "Content-type": "application/json",
+      },
+    })
+      .then((res) => res.json())
+      .catch((error) => console.error("Error:", error))
+      .then((response) => response);
+  }
   //Creacion del broker asociado al usuario registrado
-  createBroker(user, nameBroker, companyBroker, email) {
-    return fetch(`${URL_2020}/1`, {
+  createBroker(
+    user,
+    nameBroker,
+    companyBroker,
+    email,
+    telefonoBroker,
+    cargoBroker,
+    ciudad
+  ) {
+    return fetch(`${URL_2020}/101`, {
       method: "POST",
       body: JSON.stringify({
         id_mobile: user,
         brk_name: nameBroker,
         brk_mail: email,
         brk_company: companyBroker,
+        brk_cargo: cargoBroker,
+        ciu_id: ciudad,
+        brk_telefono: telefonoBroker,
       }),
       headers: {
         "Content-type": "application/json",
@@ -121,22 +147,20 @@ class SRV {
   //Actualizacion datos del broker asociado al usuario registrado
   updateDatosBroker(
     user,
+    tipo,
     nameBroker,
     companyBroker,
-    emailBroker,
     teleBroker,
-    cargoBroker,
-    ciudadBroker
+    cargoBroker
   ) {
     return fetch(`${URL_2020}/7`, {
       method: "POST",
       body: JSON.stringify({
         id_mobile: user,
+        tipo: tipo,
         brk_name: nameBroker,
-        brk_mail: emailBroker,
         brk_company: companyBroker,
         brk_telefono: teleBroker,
-        brk_ciudad: ciudadBroker,
         brk_cargo: cargoBroker,
       }),
       headers: {
@@ -147,6 +171,25 @@ class SRV {
       .catch((error) => console.error("Error:", error))
       .then((response) => response);
   }
+
+  updateMailBroker(user, tipo, mailBroker) {
+    return fetch(`${URL_2020}/7`, {
+      method: "POST",
+      body: JSON.stringify({
+        id_mobile: user,
+        tipo: tipo,
+        brk_mail: mailBroker,
+      }),
+      headers: {
+        "Content-type": "application/json",
+      },
+    })
+      .then((res) => res.json())
+      .catch((error) => console.error("Error:", error))
+      .then((response) => response);
+  }
+  //Fin de actualizacion datos del broker
+
   //Traer los miembros de un Brokerhood
   getBrokerhoodMembers(idBrokerhood) {
     return fetch(`${URL_2020}/8`, {
@@ -240,6 +283,9 @@ class SRV {
   getTiposEstate() {
     return fetch(`${URL_2020}/13`, {
       method: "POST",
+      body: JSON.stringify({
+        tipo: 2,
+      }),
       headers: {
         "Content-type": "application/json",
       },

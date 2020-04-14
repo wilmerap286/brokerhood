@@ -6,7 +6,6 @@ import CST from "../../utils/CustomSettings";
 
 function UserGuest(props) {
   const { navigation } = props;
-  console.log(props);
 
   return (
     <ScrollView style={styles.viewBody} centerContent={true}>

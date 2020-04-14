@@ -1,6 +1,7 @@
-import React, { useState } from "react";
-import { StyleSheet, View, Alert } from "react-native";
+import React, { useState, useEffect } from "react";
+import { StyleSheet, ScrollView, View, Alert } from "react-native";
 import { Input, Icon, Button } from "react-native-elements";
+import RNPickerSelect from "react-native-picker-select";
 import { validateEmail } from "../../utils/Validation";
 //import * as firebase from "firebase";
 import { withNavigation } from "react-navigation";
@@ -19,16 +20,41 @@ function RegisterForm(props) {
   const [hideRepeatPassword, setHideRepeatPassword] = useState(true);
   const [isVisibleLoading, setIsVisibleLoading] = useState(false);
   const [nameBroker, setNameBroker] = useState("");
+  const [cargoBroker, setCargoBroker] = useState("");
   const [companyBroker, setCompanyBroker] = useState("");
+  const [telefonoBroker, setTelefonoBroker] = useState("");
+  const [ciudades, setCiudades] = useState([
+    { label: "SELECCIONE LA CIUDAD", value: 0 },
+  ]);
+  const [ciudad, setCiudad] = useState(0);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
 
   const db = firebase.firestore(firebaseApp);
 
+  useEffect(() => {
+    (async () => {
+      setIsVisibleLoading(false);
+      let data = await SRV.getCiudades();
+      setCiudades(data);
+      console.log(data);
+    })();
+    setIsVisibleLoading(false);
+  }, []);
+
   const register = async () => {
     setIsVisibleLoading(true);
-    if (!email || !password || !repeatPassword || !nameBroker) {
+    if (
+      !email ||
+      !password ||
+      !repeatPassword ||
+      !nameBroker ||
+      !companyBroker ||
+      !cargoBroker ||
+      !telefonoBroker ||
+      ciudad == 0
+    ) {
       toastRef.current.show("Todos los campos son obligatorios");
     } else {
       if (!validateEmail(email)) {
@@ -60,9 +86,13 @@ function RegisterForm(props) {
       user,
       nameBroker,
       companyBroker,
-      email
+      email,
+      telefonoBroker,
+      cargoBroker,
+      ciudad
     );
     if (val_broker.type > 0) {
+      console.log(val_broker);
       const update = {
         displayName: nameBroker,
       };
@@ -83,7 +113,17 @@ function RegisterForm(props) {
   };
 
   return (
-    <View style={styles.formContainer} behavior="padding" enabled>
+    <ScrollView>
+      <RNPickerSelect
+        placeholder={{
+          label: "SELECCIONE LA CIUDAD",
+          value: 0,
+          color: CST.colorPrm,
+        }}
+        onValueChange={(value) => setCiudad(value)}
+        items={ciudades}
+        style={pickerSelectStyles}
+      />
       <Input
         placeholder="Nombre"
         containerStyle={styles.inputForm}
@@ -97,6 +137,30 @@ function RegisterForm(props) {
         }
       />
       <Input
+        placeholder="Compañía"
+        containerStyle={styles.inputForm}
+        onChange={(e) => setCompanyBroker(e.nativeEvent.text)}
+        rightIcon={
+          <Icon
+            type="material-community"
+            name="shield-account-outline"
+            iconStyle={styles.iconRigth}
+          />
+        }
+      />
+      <Input
+        placeholder="Cargo"
+        containerStyle={styles.inputForm}
+        onChange={(e) => setCargoBroker(e.nativeEvent.text)}
+        rightIcon={
+          <Icon
+            type="material-community"
+            name="seat-recline-extra"
+            iconStyle={styles.iconRigth}
+          />
+        }
+      />
+      <Input
         placeholder="Correo Electronico"
         keyboardType="email-address"
         containerStyle={styles.inputForm}
@@ -105,6 +169,19 @@ function RegisterForm(props) {
           <Icon
             type="material-community"
             name="at"
+            iconStyle={styles.iconRigth}
+          />
+        }
+      />
+      <Input
+        placeholder="Número Telefónico"
+        keyboardType="phone-pad"
+        containerStyle={styles.inputForm}
+        onChange={(e) => setTelefonoBroker(e.nativeEvent.text)}
+        rightIcon={
+          <Icon
+            type="material-community"
+            name="phone"
             iconStyle={styles.iconRigth}
           />
         }
@@ -146,7 +223,7 @@ function RegisterForm(props) {
         onPress={register}
       />
       <Loading text="Creando cuenta..." isVisible={isVisibleLoading} />
-    </View>
+    </ScrollView>
   );
 }
 
@@ -161,16 +238,40 @@ const styles = StyleSheet.create({
   },
   inputForm: {
     width: "100%",
-    marginTop: 20,
+    marginTop: 10,
   },
   iconRigth: {
     color: "#c1c1c1",
   },
   btnContainerRegister: {
     marginTop: 20,
-    width: "95%",
+    marginHorizontal: 10,
+    //width: "95%",
   },
   btnRegister: {
     backgroundColor: CST.colorPrm,
+  },
+});
+
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    fontSize: 18,
+    paddingVertical: 12,
+    marginHorizontal: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: CST.colorPrm,
+    borderRadius: 4,
+    color: CST.colorPrm,
+    paddingRight: 30, // to ensure the text is never behind the icon
+  },
+  inputAndroid: {
+    fontSize: 18,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 0.5,
+    borderColor: CST.colorPrm,
+    borderRadius: 8,
+    color: CST.colorPrm,
+    paddingRight: 30, // to ensure the text is never behind the icon
   },
 });

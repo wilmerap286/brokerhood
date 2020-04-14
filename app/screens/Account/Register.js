@@ -3,6 +3,8 @@ import { StyleSheet, View, Image, Text } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import RegisterForm from "../../components/Account/RegisterForm";
 import Toast from "react-native-easy-toast";
+import { CardStyleInterpolators } from "react-navigation-stack";
+import CST from "../../utils/CustomSettings";
 
 export default function Register(props) {
   const { navigation } = props;
@@ -25,24 +27,25 @@ export default function Register(props) {
 const styles = StyleSheet.create({
   logo: {
     width: "100%",
-    height: 160,
-    marginTop: 20
+    height: 100,
+    marginTop: 10,
+    marginBottom: 10,
   },
   viewForm: {
     marginRight: 40,
-    marginLeft: 40
+    marginLeft: 40,
   },
   textRegister: {
     marginTop: 15,
     marginLeft: 10,
-    marginRight: 15
+    marginRight: 15,
   },
   btnRegister: {
     color: "#00a680",
-    fontWeight: "bold"
+    fontWeight: "bold",
   },
   divider: {
     backgroundColor: "#00a680",
-    margin: 40
-  }
+    margin: 40,
+  },
 });
